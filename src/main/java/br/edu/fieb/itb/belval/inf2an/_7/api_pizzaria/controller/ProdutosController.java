@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.fieb.itb.belval.inf2an._7.api_pizzaria.domain.Produto;
-
 import br.edu.fieb.itb.belval.inf2an._7.api_pizzaria.service.ProdutoService;
 
 @RestController
@@ -29,17 +28,21 @@ public class ProdutosController {
 
     @GetMapping
     public ResponseEntity<List<Produto>> listarProdutos() {
-        return new ResponseEntity<>(service.listarProdutos(), HttpStatus.OK);
+        List<Produto> produtos = service.listarProdutos();
+        return new ResponseEntity<>(produtos, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public Optional<Produto> get(@PathVariable("id") Long id) {
-        return service.getProdutoById(id);
+    public ResponseEntity<Produto> get(@PathVariable("id") Long id) {
+        Optional<Produto> produto = service.getProdutoById(id);
+        return produto.map(ResponseEntity::ok)
+                      .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/comcategoria")
-    public List<Map<String, Object>> obterProdutosComCategoria() {
-        return service.obterProdutosComCategoria();
+    public ResponseEntity<List<Map<String, Object>>> obterProdutosComCategoria() {
+        List<Map<String, Object>> produtosComCategoria = service.obterProdutosComCategoria();
+        return new ResponseEntity<>(produtosComCategoria, HttpStatus.OK);
     }
 
     // Incluir novo produto
@@ -53,17 +56,21 @@ public class ProdutosController {
     @PutMapping("/{id}")
     public ResponseEntity<Produto> atualizar(@PathVariable Long id, @RequestBody Produto produto) {
         Produto produtoAtualizado = service.atualizar(id, produto);
-        if (produtoAtualizado != null) {
-            return ResponseEntity.ok(produtoAtualizado);
-        }
-        return ResponseEntity.notFound().build();
+        return produtoAtualizado != null 
+               ? ResponseEntity.ok(produtoAtualizado) 
+               : ResponseEntity.notFound().build();
     }
 
     // Excluir produto
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        service.excluir(id);
-        return ResponseEntity.noContent().build();
+        try {
+            service.excluir(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
-
 }

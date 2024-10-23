@@ -6,14 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import br.edu.fieb.itb.belval.inf2an._7.api_pizzaria.domain.Usuario;
 import br.edu.fieb.itb.belval.inf2an._7.api_pizzaria.service.UsuarioService;
@@ -43,8 +36,13 @@ public class UsuariosController {
     // Incluir novo usuário
     @PostMapping
     public ResponseEntity<Usuario> incluir(@RequestBody Usuario usuario) {
-        Usuario novoUsuario = service.incluir(usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
+        try {
+            Usuario novoUsuario = service.incluir(usuario);
+            return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
+        } catch (Exception e) {
+            // Você pode adicionar um log aqui para depuração
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     // Atualizar usuário
